@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Excel Data Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+/* =========================
+   الإعدادات العامة
+========================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    color: #222;
+}
+
+button {
+    font-family: Arial;
+    cursor: pointer;
+}
+
+
+/* =========================
+   الصفحات
+========================= */
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+
+/* =========================
+   الصفحة الأولى - Excel
+========================= */
+
+.excel {
+    width: 96%;
+    margin: 25px auto;
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 3px 15px rgba(0,0,0,.15);
+}
+
+.top {
+    height: 55px;
+    background: #107c10;
+    color: white;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 20px;
+
+    font-size: 21px;
+    font-weight: bold;
+}
+
+.tabs {
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 30px;
+
+    padding: 0 20px;
+
+    background: #fafafa;
+
+    border-bottom: 1px solid #ddd;
+
+    direction: ltr;
+
+    font-size: 14px;
+
+    overflow-x: auto;
+}
+
+.tabs span:first-child {
+    color: #107c10;
+    font-weight: bold;
+}
+
+.title {
+    background: #107c10;
+    color: white;
+
+    padding: 15px 20px;
+
+    font-size: 24px;
+    font-weight: bold;
+}
+
+
+/* الجدول الموجود في الصفحة الأولى */
+
+.preview {
+    padding: 30px;
+    overflow-x: auto;
+}
+
+.preview table {
+    width: 100%;
+    min-width: 800px;
+
+    border-collapse: collapse;
+
+    direction: ltr;
+}
+
+.preview th {
+    background: #107c10;
+    color: white;
+
+    padding: 12px;
+
+    border: 1px solid #ccc;
+}
+
+.preview td {
+    padding: 11px;
+
+    text-align: center;
+
+    border: 1px solid #ddd;
+}
+
+.preview tr:nth-child(even) td {
+    background: #f7f7f7;
+}
+
+
+/* زر إظهار البيانات */
+
+.show-data {
+    display: block;
+
+    margin: 10px auto 35px;
+
+    background: #107c10;
+    color: white;
+
+    border: none;
+
+    padding: 15px 40px;
+
+    border-radius: 8px;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    transition: .2s;
+}
+
+.show-data:hover {
+    background: #0b650b;
+    transform: scale(1.03);
+}
+
+
+/* =========================
+   الصفحة الثانية
+========================= */
+
+.data-page {
+    width: 95%;
+    max-width: 1200px;
+
+    margin: 20px auto;
+}
+
+
+/* رأس الصفحة */
+
+.data-header {
+    background: #107c10;
+    color: white;
+
+    padding: 18px;
+
+    border-radius: 10px;
+
+    font-size: 24px;
+    font-weight: bold;
+
+    text-align: center;
+}
+
+
+/* زر الرجوع */
+
+.back {
+    margin: 15px 0;
+
+    background: #555;
+    color: white;
+
+    border: none;
+
+    padding: 11px 20px;
+
+    border-radius: 7px;
+
+    font-size: 16px;
+}
+
+.back:hover {
+    background: #333;
+}
+
+
+/* =========================
+   صندوق الإدخال
+========================= */
+
+.input-box {
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 2px 10px #0002;
+
+    margin-bottom: 20px;
+}
+
+.input-box h2 {
+    margin-top: 0;
+}
+
+.row {
+    display: flex;
+
+    gap: 10px;
+
+    margin-bottom: 10px;
+}
+
+.row input {
+    flex: 1;
+
+    padding: 12px;
+
+    border: 1px solid #bbb;
+
+    border-radius: 7px;
+
+    font-size: 16px;
+}
+
+.add {
+    background: #2196f3;
+    color: white;
+
+    border: none;
+
+    padding: 12px 18px;
+
+    border-radius: 7px;
+
+    font-size: 16px;
+}
+
+.delete {
+    background: #e53935;
+    color: white;
+
+    border: none;
+
+    padding: 10px 15px;
+
+    border-radius: 7px;
+}
+
+.generate {
+    display: block;
+
+    width: 100%;
+
+    margin-top: 15px;
+
+    padding: 14px;
+
+    background: #107c10;
+    color: white;
+
+    border: none;
+
+    border-radius: 7px;
+
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+
+/* =========================
+   الرسومات
+========================= */
+
+.results {
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 2px 10px #0002;
+}
+
+.charts {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 30px;
+}
+
+.chart-card {
+    background: #fafafa;
+
+    border: 1px solid #ddd;
+
+    border-radius: 10px;
+
+    padding: 15px;
+}
+
+.chart-card h2 {
+    text-align: center;
+
+    font-size: 20px;
+}
+
+.chart-area {
+    height: 350px;
+}
+
+
+/* =========================
+   الإجمالي
+========================= */
+
+.total {
+    margin-top: 20px;
+
+    padding: 15px;
+
+    background: #e8f5e9;
+
+    border-radius: 8px;
+
+    font-size: 19px;
+
+    font-weight: bold;
+
+    text-align: center;
+}
+
+
+/* =========================
+   الجدول الثاني
+========================= */
+
+.table-container {
+    overflow-x: auto;
+
+    margin-top: 25px;
+}
+
+table {
+    width: 100%;
+
+    min-width: 500px;
+
+    border-collapse: collapse;
+}
+
+th {
+    background: #107c10;
+    color: white;
+
+    padding: 12px;
+}
+
+td {
+    border: 1px solid #ddd;
+
+    padding: 11px;
+
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background: #f5f5f5;
+}
+
+.percent {
+    font-weight: bold;
+}
+
+
+/* =========================
+   الموبايل
+========================= */
+
+@media (max-width: 750px) {
+
+    .excel {
+        width: 100%;
+        margin: 0;
+    }
+
+    .charts {
+        grid-template-columns: 1fr;
+    }
+
+    .row {
+        flex-direction: column;
+    }
+
+    .top {
+        font-size: 17px;
+    }
+
+    .title {
+        font-size: 20px;
+    }
+
+    .data-page {
+        width: 96%;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- ==================================================
+     الصفحة الأولى
+================================================== -->
+
+
+
+
+
+<!-- ==================================================
+     الصفحة الثانية
+================================================== -->
+
+<section id="page2" class="page active">
+
+    <div class="data-page">
+
+
+        <div class="data-header">
+
+            ادخل بياناتك
+
+        </div>
+
+
+       
+
+        <!-- صندوق الإدخال -->
+
+        <div class="input-box">
+
+           
+
+
+            <div id="inputs">
+
+                <div class="row">
+
+                    <input
+                        type="text"
+                        placeholder="اسم البيانات">
+
+                    <input
+                        type="number"
+                        placeholder=" القيمه"
+                        min="0">
+
+                </div>
+
+
+                <div class="row">
+
+                    <input
+                        type="text"
+                        placeholder="اسم البيانات">
+
+                    <input
+                        type="number"
+                        placeholder="القيمه"
+                        min="0">
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="add"
+                onclick="addRow()">
+
+                إضافة بيانات
+
+            </button>
+
+
+            <button
+                class="generate"
+                onclick="generateCharts()">
+
+                 إظهار البيانات والرسم
+
+            </button>
+
+        </div>
+
+
+
+        <!-- النتائج -->
+
+        <div class="results">
+
+
+            <div class="charts">
+
+
+                <!-- الدائرة -->
+
+                <div class="chart-card">
+
+                    <h2>
+                        الدائرة البيانية
+                    </h2>
+
+                    <div class="chart-area">
+
+                        <canvas id="pieChart"></canvas>
+
+                    </div>
+
+                </div>
+
+
+                <!-- الأعمدة -->
+
+                <div class="chart-card">
+
+                    <h2>
+                        الرسم البياني بالأعمدة
+                    </h2>
+
+                    <div class="chart-area">
+
+                        <canvas id="barChart"></canvas>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- الإجمالي -->
+
+            <div
+                class="total"
+                id="total">
+
+                الإجمالي: 0
+
+            </div>
+
+
+            <!-- جدول النتائج -->
+
+            
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<script>
+
+/* =========================================
+   التنقل بين الصفحتين
+========================================= */
+
+function showPage2() {
+
+    document
+        .getElementById("page1")
+        .classList.remove("active");
+
+    document
+        .getElementById("page2")
+        .classList.add("active");
+
+    window.scrollTo(0, 0);
+}
+
+
+function showPage1() {
+
+    document
+        .getElementById("page2")
+        .classList.remove("active");
+
+    document
+        .getElementById("page1")
+        .classList.add("active");
+
+    window.scrollTo(0, 0);
+}
+
+
+
+/* =========================================
+   الرسومات
+========================================= */
+
+let pieChart = null;
+let barChart = null;
+
+
+
+/* =========================================
+   إضافة خانة
+========================================= */
+
+function addRow() {
+
+    const inputs =
+        document.getElementById("inputs");
+
+    const row =
+        document.createElement("div");
+
+    row.className = "row";
+
+    row.innerHTML = `
+
+        <input
+            type="text"
+            placeholder="اسم البيانات">
+
+        <input
+            type="number"
+            placeholder="القيمة"
+            min="0">
+
+        <button
+            class="delete"
+            onclick="this.parentElement.remove()">
+
+            حذف
+
+        </button>
+
+    `;
+
+    inputs.appendChild(row);
+}
+
+
+
+/* =========================================
+   إنشاء البيانات والرسومات
+========================================= */
+
+function generateCharts() {
+
+    const rows =
+        document.querySelectorAll(
+            "#inputs .row"
+        );
+
+
+    let labels = [];
+    let values = [];
+
+
+    rows.forEach(row => {
+
+        const inputs =
+            row.querySelectorAll("input");
+
+        const name =
+            inputs[0].value.trim();
+
+        const value =
+            Number(inputs[1].value);
+
+
+        if (
+            name !== "" &&
+            value > 0
+        ) {
+
+            labels.push(name);
+
+            values.push(value);
+
+        }
+
+    });
+
+
+    /* لا توجد بيانات */
+
+    if (values.length === 0) {
+
+        alert(
+            "اهلا بك في عالم يوسف"
+        );
+
+        return;
+    }
+
+
+    /* =====================================
+       حساب الإجمالي
+    ===================================== */
+
+    const total =
+        values.reduce(
+            (sum, value) =>
+                sum + value,
+            0
+        );
+
+
+    document
+        .getElementById("total")
+        .innerHTML =
+        "الإجمالي: " +
+        total.toLocaleString();
+
+
+
+    /* =====================================
+       إنشاء الجدول
+    ===================================== */
+
+   
+
+
+    /* =====================================
+       حذف الرسومات القديمة
+    ===================================== */
+
+    if (pieChart) {
+
+        pieChart.destroy();
+
+    }
+
+
+    if (barChart) {
+
+        barChart.destroy();
+
+    }
+
+
+
+    /* =====================================
+       الدائرة
+    ===================================== */
+
+    pieChart =
+        new Chart(
+
+            document.getElementById(
+                "pieChart"
+            ),
+
+            {
+
+                type: "pie",
+
+
+                data: {
+
+                    labels: labels,
+
+
+                    datasets: [{
+
+                        data: values,
+
+                        borderWidth: 3,
+
+                        borderColor:
+                            "#ffffff"
+
+                    }]
+
+                },
+
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio:
+                        false,
+
+
+                    plugins: {
+
+                        legend: {
+
+                            position:
+                                "right"
+
+                        },
+
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label:
+                                function(context) {
+
+                                    const value =
+                                        context.raw;
+
+
+                                    const percentage =
+                                        (value / total)
+                                        * 100;
+
+
+                                    return (
+
+                                        context.label
+                                        + ": "
+                                        + percentage
+                                            .toFixed(1)
+                                        + "%"
+
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+
+
+    /* =====================================
+       الأعمدة
+    ===================================== */
+
+    barChart =
+        new Chart(
+
+            document.getElementById(
+                "barChart"
+            ),
+
+            {
+
+                type: "bar",
+
+
+                data: {
+
+                    labels: labels,
+
+
+                    datasets: [{
+
+                        label:
+                            "القيمة",
+
+                        data: values,
+
+                        borderWidth: 1
+
+                    }]
+
+                },
+
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio:
+                        false,
+
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero:
+                                true
+
+                        }
+
+                    },
+
+
+                    plugins: {
+
+                        legend: {
+
+                            display:
+                                false
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+}
+
+
+/* تشغيل البيانات الافتراضية */
+
+generateCharts();
+
+</script>
+
+</body>
+</html>
